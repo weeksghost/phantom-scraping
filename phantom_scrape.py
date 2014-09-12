@@ -2,10 +2,11 @@
 
 import bs4
 import requests
+from urlparse import urlparse
 from selenium import webdriver
 
 driver = webdriver.PhantomJS('phantomjs')
-root_url = 'http://www.brooklyndelta.com'
+root_url = 'http://brooklyndelta.com'
 browser = driver.get(root_url)
 content = driver.page_source
 soup = bs4.BeautifulSoup(content)
@@ -14,12 +15,15 @@ for paths in links:
     urls = paths
     try:
         response = requests.get(urls)
-        if ('http://' or 'https://' not in urls):
-            new_url = '%s%s' % (root_url, urls)
-            print new_url
-        elif response.status_code != 200:
+        if response.status_code != 200:
             print '[%s] %s' % (response.status_code, urls)
+        elif root_url not in urls:
+            resp = requests.get(urls)
+            if resp.status_code != 200:
+                print '[%s] %s' % (resp.status_code, urls)
     except:
-        print urls
-        #pass
+        new_url = '%s%s' % (root_url, urls)
+        r = requests.get(new_url)
+        if r.status_code != 200:
+            print '[%s] %s' % (r.status_code, new_url)
 driver.close()
